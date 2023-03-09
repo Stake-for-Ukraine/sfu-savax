@@ -1,0 +1,26 @@
+# Compiler files
+cache/
+out/
+
+# Ignores development broadcast logs
+!/broadcast
+/broadcast/*/31337/
+/broadcast/**/dry-run/
+
+# Docs
+docs/
+
+# Dotenv file
+.env
+
+#Ignore the following files
+
+.ipynb_checkpoints
+
+.DS_Store
+
+pycache
+
+*.db
+
+*.pytest_cache
