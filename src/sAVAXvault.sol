@@ -6,32 +6,75 @@ import 'openzeppelin-contracts/token/ERC20/ERC20.sol';
 import 'BENQI-Smart-Contracts/sAVAX/IStakedAvax.sol';
 import '../lib/forge-std/src/console.sol';
 
+/***
+    * @title sAVAXvault
+    * @author Oleksii Novykov
+    * @notice sAVAXvault is wrapper for Benqi liquid staking (sAVAX). 
+    * Users can deposit AVAX or sAVAX and recieve sfuAVAX. Staking rewards 
+    * are donated to NGOs supporting Ukraine.
+ */
+
 contract sAVAXvault is ERC20 {
 
+    /* ========== STATE VARIABLES ========== */
+
+    IStakedAvax public sAVAXcontract;
+
+    /// @notice Address of the Harvest Manager - contract that recieves harvested rewards and disitirbutes them to beneficiaries)
+    address payable public harvestManagerAddress;
+
+    /// @notice Address of the sAVAX ERC-20 contract;
+    address payable public sAVAXaddress; 
+
+    /// @notice Total amount of sfuAVAX issued by this contract to depositors of AVAX/sAVAX
+    uint256 public totalShares;
+    /// @notice Total amount deposited by all users in AVAX to this contract minus amount withdrawn by all users
+    uint256 public totalAssets;
+    
+    /// @notice Balances of each individual users in AVAX
+    mapping (address => uint256) public totalDeposit; //summary of all deposits minus of all withdrawals for one user;
+
+    /* ========== EVENTS ========== */
+
+    /// @notice Emitted when a user deposits AVAX
+    /// @param caller Address of the user who deposited AVAX
+    /// @param amount Amount of AVAX deposited
     event Deposit(address caller, uint256 amount);
+
+    /// @notice Emitted when a user withdraws AVAX
+    /// @param caller Address of the user who withdrew AVAX
+    /// @param receiver Address of the user who received AVAX
+    /// @param amount Amount of AVAX withdrawn
+    /// @param shares Amount of sfuAVAX burned
     event Withdraw(address caller, address receiver, uint256 amount, uint256 shares);
+
+    /// @notice Emitted when harvest function is triggered and staking rewards are harvested
+    /// @param caller Address of the user who triggered harvest function
+    /// @param amount Amount harvested (in AVAX)
     event Harvested(address caller, uint256 amount);
+
+    /// @notice Emitted when available AVAX is staked
+    /// @param caller Address of the user who triggered stake function
+    /// @param amount Amount staked (in AVAX)
     event Staked(address caller, uint256 amount);
 
 
-    IStakedAvax public sAVAXcontract;
-    address payable public distributionAddress; //address of the distribution contract
-    address payable public sAVAXaddress; //address of the token that we invest in
-    uint256 public totalShares; //summary of all shares for all users
-    uint256 public totalAssets; //summary of all deposits minus of all withdrawals
-    
-
-    mapping (address => uint256) public totalDeposit; //summary of all deposits minus of all withdrawals for one user;
-
-    constructor(address payable _distributionAddress, address payable _sAVAXaddress) ERC20("Vault", "VLT") {
+    /// @notice Contract constructor sets initial parameters when contract is deployed.
+    /// @param _harvestManagerAddress Address of the Harvest Manager - contract that recieves harvested rewards and disitirbutes them to beneficiaries)
+    /// @param _sAVAXaddress Address of the sAVAX ERC-20 contract;
+    constructor(address payable _harvestManagerAddress, address payable _sAVAXaddress) ERC20("Stake AVAX for Ukraine", "sfuAVAX") {
         sAVAXaddress = _sAVAXaddress;
         sAVAXcontract = IStakedAvax(sAVAXaddress);
-        distributionAddress = _distributionAddress;
+        harvestManagerAddress = _harvestManagerAddress;
 
         totalAssets = 0;
         totalShares = 0;
     }
 
+    /* ========== MAIN FUNCTIONALITY ========== */
+
+    /// @notice Allows users to deposit AVAX to the contract and mints sfuAVAX in return
+    /// @param _receiver Address of the user who will receive sfuAVAX
     function deposit(address _receiver) external payable returns (uint256 _shares) {
         require(msg.value > 0, "Amount must be greater than 0");
         require(msg.sender.balance > msg.value, "Vault: deposit amount must be greater than 0");
@@ -52,6 +95,9 @@ contract sAVAXvault is ERC20 {
         emit Deposit(msg.sender, msg.value);
     }
 
+    /// @notice Allows users to withdraw sAVAX from the contract and burns sfuAVAX in return
+    /// @param _shares Amount of sfuAVAX to burn
+    /// @param _receiver Address of the user who will receive sAVAX
     function withdraw(uint256 _shares, address payable _receiver) external payable {
         uint256 _AVAXtoWithdraw;
         uint256 _sAVAXtoWithdraw;
@@ -79,6 +125,7 @@ contract sAVAXvault is ERC20 {
         emit Withdraw(msg.sender, _receiver, _AVAXtoWithdraw, _shares);
     }
 
+    /// @notice Allows users to stake available AVAX in the contract with Benqi.fi sAVAX staking contract
     function stake() external payable returns (uint256) {
         uint256 _availableAVAX = address(this).balance; //Check how much of the baseAsset is not invested (if any)
         uint256 _sAVAXrecieved; //amount of sAVAX returned from the staking contract after submiting the _availableBaseAsset
@@ -93,42 +140,58 @@ contract sAVAXvault is ERC20 {
         }
     }
 
+    /** 
+        @notice Allows to harvest staking rewards earned from user's deposit to Benqi.fi sAVAX staking contract. 
+        Harvested rewards are sent to the Harvest Manager contract. 
+    */
     function harvest() external payable {
 
-        uint256 _unharvestedRewards; //Amount of rewards that are not harvested
-
-        _unharvestedRewards = this.checkAVAXinsAVAX(totalShares) - totalAssets; //this is AVAX
+        //Amount of rewards that are not harvested (in AVAX)
+        uint256 _unharvestedRewards;
+        _unharvestedRewards = this.checkAVAXinsAVAX(totalShares) - totalAssets;
 
          //Check how much of the sAVAX is not harvested (if any)
         if (_unharvestedRewards > 0){
-            sAVAXcontract.transfer(distributionAddress, this.checksAVAXinAVAX(_unharvestedRewards));
+            sAVAXcontract.transfer(harvestManagerAddress, this.checksAVAXinAVAX(_unharvestedRewards));
             emit Harvested(msg.sender, _unharvestedRewards);
         }
 
 
     }
 
+    /* ========== HELPER FUNCTIONS ========== */
+
+    /// @notice Converts AVAX to sAVAX
+    /// @param _amount Amount of AVAX to convert
     function checkAVAXinsAVAX(uint256 _amount) external view returns (uint256) {
         return sAVAXcontract.getPooledAvaxByShares(_amount);
     }
 
+    /// @notice Converts sAVAX to AVAX
+    /// @param _amount Amount of sAVAX to convert
     function checksAVAXinAVAX(uint256 _amount) external view returns (uint256) {
         return sAVAXcontract.getSharesByPooledAvax(_amount);
     }
 
+    /// @notice Standard fallback function that allows contract to recieve native tokens (AVAX)
     receive() external payable {
         this.deposit{value: msg.value}(msg.sender);
     }
 
+    /// @notice Standard fallback function that allows contract to recieve native tokens (AVAX)
     fallback() external payable {
         revert();
     }
 
+    /// @notice Helper function that transfer AVAX to given address, internal, only used in this contract
+    /// @param _to Address of the address that will receive AVAX
+    /// @param _amount Amount of AVAX to transfer
     function _safeTransfer(address payable _to, uint _amount) internal {
         require(_to != address(0), "Can't transfer to zero address");
         require(_amount <= address(this).balance, "Not enough funds");
         _to.transfer(_amount);
     }
+
 
     function checkFallback(address payable to) external returns (bool) {
         // Send 0 AVAX to the target address and check if it reverts
