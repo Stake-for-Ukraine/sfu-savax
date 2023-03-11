@@ -6,30 +6,53 @@ import './interfaces/IswapStrategy.sol';
 import './interfaces/IdistStrategy.sol';
 import 'openzeppelin-contracts/token/ERC20/IERC20.sol';
 
-//HarvetsManager is a proxy contract. When called, it will call the execution function on the implementation contract
+/** 
+    @title HarvestManager
+    @notice HarvetsManager is a proxy contract. Unlike the vault contract that is immutable, 
+    Manager is an upgradable contract owned by governance.When called, it will call the execution function 
+    on the implementation contract.
+    @dev Swap and distribute strategies are stored in the /strategies folder
+*/
+
 contract HarvestManager {
 
+    /// @notice The owner of the contract. It can be changed by the owner calling changeOwner()
     address public owner;
+    /// @notice The address of the active swap strategy. It can be changed by the owner calling updateSwapStrategy()
     address public activeSwapStrategyAddress;
+    /// @notice The address of the active distributing strategy. It can be changed by the owner calling updateDistributeStrategy()
     address public activeDistributeStrategyAddress;
 
-
+    /// @notice The event emitted when swap function is called.
+    /// @param _token0 The address of the token that is swapped (usually sAVAX, but also can be used to swap any other ERC-20 tokens sent to manager by mistake).
+    /// @param _token1 The address of the token that is received after swap (e.g. USDC)
+    /// @param _amount The amount of tokens that is swapped
     event Swap(address _token0, address _token1, uint256 _amount);
+
+    /// @notice The event emitted when distribute function is called.
+    /// @param _distributionToken The address of the token that is distributed (usually USDC, but also can be used to distribute any other ERC-20 tokens sent to manager by mistake).
+    /// @param _amount The amount of tokens that is distributed
     event Distribute(address _distributionToken, uint256 _amount);
 
-    modifier onlyOwner() {
+    constructor(address _activeSwapStrategyAddress, address _activeDistributeStrategyAddress) {
 
-        require(msg.sender == owner, "Only owner can call this function.");
-        _;
-    }
-
-    
-    function initialize(address _activeSwapStrategyAddress, address _activeDistributeStrategyAddress) public {
-
+        owner = msg.sender;
         activeSwapStrategyAddress = _activeSwapStrategyAddress;
         activeDistributeStrategyAddress = _activeDistributeStrategyAddress;
 
     }
+
+    /* ========== MODIFIERS ========== */
+
+    /// @notice Modifier to check if the caller is the owner of the contract.
+    modifier onlyOwner() {
+
+        require(msg.sender == owner, "Only owner can call this function.");
+        _;
+
+    }
+
+    /* ========== PUBLIC FUNCTIONS ========== */
 
     function swap(address _token0, address _token1, IswapStrategy) external {
 
@@ -48,6 +71,8 @@ contract HarvestManager {
 
     }
 
+    /* ========== OWNER FUNCTIONS ========== */
+
     function updateSwapStrategy(address _newSwapStrategyAddress) external onlyOwner {
 
         activeSwapStrategyAddress = _newSwapStrategyAddress;
@@ -65,16 +90,4 @@ contract HarvestManager {
         owner = _newOwner;
 
     }
-
-    //function to swap sAVAX to some asset, e.g. stablecoin
-
-    //function to redeem sAVAX for AVAX
-
-    //function to swap AVAX for some asset, e.g. stablecoin
-
-    //function to send stablecoin to the list of beneficiaries
-
-    //manage list of beneficiaries
-
-    //function to change owner
 }
