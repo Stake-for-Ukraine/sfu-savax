@@ -11,7 +11,8 @@ import 'openzeppelin-contracts/token/ERC20/IERC20.sol';
     @notice HarvetsManager is a proxy contract. Unlike the vault contract that is immutable, 
     Manager is an upgradable contract owned by governance.When called, it will call the execution function 
     on the implementation contract.
-    @dev Swap and distribute strategies are stored in the /strategies folder
+    @dev Swap and distribute strategies are stored in the /strategies folder. Since this contract supports swaping any WRC-20 tokens,
+    it is required to provide address of both tokens (in and out) to perform a swap.
 */
 
 contract HarvestManager {
