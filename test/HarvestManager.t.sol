@@ -14,8 +14,8 @@ contract HarvestManagerTest is Test {
     MockERC20 public USDC;
 
     function setUp() public {
-        harvestManager = new HarvestManager();
-        swapStrategy1 = new SwapStrategy1();
+        //harvestManager = new HarvestManager();
+        //swapStrategy1 = new SwapStrategy1();
         mockLSDVault = new MockLSDVault();
         USDC = new MockERC20();
     }

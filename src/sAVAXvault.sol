@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import './interfaces/IERC4626.sol';
 import 'openzeppelin-contracts/token/ERC20/ERC20.sol';
-import 'BENQI-Smart-Contracts/sAVAX/IStakedAvax.sol';
+import './interfaces/IStakedAvax.sol';
 import '../lib/forge-std/src/console.sol';
 
 /***
@@ -26,10 +26,17 @@ contract sAVAXvault is ERC20 {
     /// @notice Address of the sAVAX ERC-20 contract;
     address payable public sAVAXaddress; 
 
+    /// @notice Address of the owner of the contract
+    address public owner;
+
     /// @notice Total amount of sfuAVAX issued by this contract to depositors of AVAX/sAVAX
     uint256 public totalShares;
+
     /// @notice Total amount deposited by all users in AVAX to this contract minus amount withdrawn by all users
     uint256 public totalAssets;
+
+    /// @notice When true means that contract is in emergency mode and deposits are disabled, staking of available AVAX is disabled, withdrawals are enabled.
+    bool public emergencyMode;
     
     /// @notice Balances of each individual users in AVAX
     mapping (address => uint256) public totalDeposit; //summary of all deposits minus of all withdrawals for one user;
@@ -58,14 +65,25 @@ contract sAVAXvault is ERC20 {
     /// @param amount Amount staked (in AVAX)
     event Staked(address caller, uint256 amount);
 
+    /// @notice modifier that is used to restrict access to the function only to the manager;
+    modifier onlyOwner() {
+
+        require(msg.sender == owner, "Only owner can call this function.");
+        _;
+
+    }
+
 
     /// @notice Contract constructor sets initial parameters when contract is deployed.
     /// @param _harvestManagerAddress Address of the Harvest Manager - contract that recieves harvested rewards and disitirbutes them to beneficiaries)
     /// @param _sAVAXaddress Address of the sAVAX ERC-20 contract;
     constructor(address payable _harvestManagerAddress, address payable _sAVAXaddress) ERC20("Stake AVAX for Ukraine", "sfuAVAX") {
+
+        emergencyMode = false;
         sAVAXaddress = _sAVAXaddress;
         sAVAXcontract = IStakedAvax(sAVAXaddress);
         harvestManagerAddress = _harvestManagerAddress;
+        owner = msg.sender;
 
         totalAssets = 0;
         totalShares = 0;
@@ -76,6 +94,8 @@ contract sAVAXvault is ERC20 {
     /// @notice Allows users to deposit AVAX to the contract and mints sfuAVAX in return
     /// @param _receiver Address of the user who will receive sfuAVAX
     function deposit(address _receiver) external payable returns (uint256 _shares) {
+
+        require(!emergencyMode, "Vault: emergency mode is active");
         require(msg.value > 0, "Amount must be greater than 0");
         require(msg.sender.balance > msg.value, "Vault: deposit amount must be greater than 0");
         require(_receiver != address(0), "Vault: receiver address must be non-zero address");
@@ -99,6 +119,7 @@ contract sAVAXvault is ERC20 {
     /// @param _shares Amount of sfuAVAX to burn
     /// @param _receiver Address of the user who will receive sAVAX
     function withdraw(uint256 _shares, address payable _receiver) external payable {
+
         uint256 _AVAXtoWithdraw;
         uint256 _sAVAXtoWithdraw;
         require(_receiver != address(0), "Vault: receiver address must be non-zero address");
@@ -127,15 +148,23 @@ contract sAVAXvault is ERC20 {
 
     /// @notice Allows users to stake available AVAX in the contract with Benqi.fi sAVAX staking contract
     function stake() external payable returns (uint256) {
-        uint256 _availableAVAX = address(this).balance; //Check how much of the baseAsset is not invested (if any)
-        uint256 _sAVAXrecieved; //amount of sAVAX returned from the staking contract after submiting the _availableBaseAsset
+
+        require(!emergencyMode, "Vault: emergency mode is active");
+
+        /// Check how much of the baseAsset is not invested (if any)
+        uint256 _availableAVAX = address(this).balance;
+
+        /// Amount of sAVAX returned from the staking contract after submiting the _availableBaseAsset
+        uint256 _sAVAXrecieved;
 
         if (_availableAVAX > 0){
             _sAVAXrecieved = sAVAXcontract.submit{value: _availableAVAX}();
             emit Staked(msg.sender, _availableAVAX);
-            return _sAVAXrecieved; //Deposit the baseAsset into the sAvax contract and save in variable amlount of sAVAX shares recieved
+            ///Deposit the baseAsset into the sAvax contract and save in variable amlount of sAVAX shares recieved
+            return _sAVAXrecieved;
         } else {
-            return 0; //Return 0 if there is no baseAsset to invest
+            /// Return 0 if there is no baseAsset to invest
+            return 0;
 
         }
     }
@@ -146,6 +175,7 @@ contract sAVAXvault is ERC20 {
     */
     function harvest() external payable {
 
+        require(!emergencyMode, "Vault: emergency mode is active"); 
         //Amount of rewards that are not harvested (in AVAX)
         uint256 _unharvestedRewards;
         _unharvestedRewards = this.checkAVAXinsAVAX(totalShares) - totalAssets;
@@ -157,6 +187,13 @@ contract sAVAXvault is ERC20 {
         }
 
 
+    }
+
+    /* ========== MANAGEMENT FUNCTIONS ========== */
+
+    /// @notice Allows Manager to put the vault in shutdown mode. No new deposits are allowed. Withdrawals only.
+    function shutdown() external onlyOwner {
+        emergencyMode = true;
     }
 
     /* ========== HELPER FUNCTIONS ========== */
@@ -175,6 +212,8 @@ contract sAVAXvault is ERC20 {
 
     /// @notice Standard fallback function that allows contract to recieve native tokens (AVAX)
     receive() external payable {
+
+        require(!emergencyMode, "Vault: emergency mode is active");
         this.deposit{value: msg.value}(msg.sender);
     }
 
