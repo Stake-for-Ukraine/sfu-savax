@@ -54,6 +54,9 @@ contract HarvestManager {
 
     /* ========== PUBLIC FUNCTIONS ========== */
 
+    /// @notice The function that users (keepers) call to swap harvested yield for an assets suitable for donation (e.g. stablecoin). This contract doesn't have a logic to exscute transfer. Instead, it calls the swap function on the active swap strategy contract.
+    /// @param _token0 The address of the token that is swapped (usually sAVAX, but also can be used to swap any other ERC-20 tokens sent to manager by mistake).
+    /// @param _token1 The address of the token that is received after swap (e.g. USDC)
     function swap(address _token0, address _token1, IswapStrategy) external {
 
         uint256 _amount = IERC20(_token0).balanceOf(address(this));
@@ -62,6 +65,8 @@ contract HarvestManager {
 
     }
 
+    /// @notice The function that users (keepers) call to distribute harvested yield to beneficiaries after it was swapped to more stable asset (e.g. stablecoin). This contract doesn't have a logic to exscute transfer. Instead, it calls the distribute function on the active distribute strategy contract.
+    /// @param _distributionToken The address of the token that is distributed (usually USDC, but also can be used to distribute any other ERC-20 tokens sent to manager by mistake).
     function distribute(address _distributionToken) external onlyOwner {
 
         IERC20(_distributionToken).approve(address(activeDistributeStrategyAddress), IERC20(_distributionToken).balanceOf(address(this)));
@@ -73,18 +78,24 @@ contract HarvestManager {
 
     /* ========== OWNER FUNCTIONS ========== */
 
+    /// @notice The function that owner calls to update the address of the active swap strategy.
+    /// @param _newSwapStrategyAddress The address of the new swap strategy contract.
     function updateSwapStrategy(address _newSwapStrategyAddress) external onlyOwner {
 
         activeSwapStrategyAddress = _newSwapStrategyAddress;
 
     }
 
+    /// @notice The function that owner calls to update the address of the active distribution strategy.
+    /// @param _newDistributeStrategyAddress The address of the new distribution strategy contract.
     function updateDistributeStrategy(address _newDistributeStrategyAddress) external onlyOwner {
 
         activeDistributeStrategyAddress = _newDistributeStrategyAddress;
 
     }
 
+    /// @notice The function that owner calls to transfer ownership of the contract.
+    /// @param _newOwner The address of the new owner.
     function changeOwner(address _newOwner) external onlyOwner {
 
         owner = _newOwner;
