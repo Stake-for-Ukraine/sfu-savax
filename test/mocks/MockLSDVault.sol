@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import '../../lib/BENQI-Smart-Contracts/sAVAX/IStakedAvax.sol';
+import '../../src/interfaces/IStakedAvax.sol';
 import 'openzeppelin-contracts/token/ERC20/ERC20.sol';
 import '../../lib/forge-std/src/console.sol';
 

@@ -28,18 +28,16 @@ contract HarvestManager {
     /// @param _token0 The address of the token that is swapped (usually sAVAX, but also can be used to swap any other ERC-20 tokens sent to manager by mistake).
     /// @param _token1 The address of the token that is received after swap (e.g. USDC)
     /// @param _amount The amount of tokens that is swapped
-    event Swap(address _token0, address _token1, uint256 _amount);
+    event Swap(address _token0, address _token1, uint256 _amount, address _swapStrategy);
 
     /// @notice The event emitted when distribute function is called.
     /// @param _distributionToken The address of the token that is distributed (usually USDC, but also can be used to distribute any other ERC-20 tokens sent to manager by mistake).
     /// @param _amount The amount of tokens that is distributed
     event Distribute(address _distributionToken, uint256 _amount);
 
-    constructor(address _activeSwapStrategyAddress, address _activeDistributeStrategyAddress) {
+    constructor() {
 
         owner = msg.sender;
-        activeSwapStrategyAddress = _activeSwapStrategyAddress;
-        activeDistributeStrategyAddress = _activeDistributeStrategyAddress;
 
     }
 
@@ -61,8 +59,10 @@ contract HarvestManager {
     function swap(address _token0, address _token1, IswapStrategy) external {
 
         uint256 _amount = IERC20(_token0).balanceOf(address(this));
+        IERC20(_token0).transfer(activeSwapStrategyAddress, _amount);
+        //IERC20(_token0).approve(address(activeSwapStrategyAddress), _amount);
         IswapStrategy(activeSwapStrategyAddress).swap(_amount, _token0, _token1);
-        emit Swap(_token0, _token1, _amount);
+        emit Swap(_token0, _token1, _amount, activeSwapStrategyAddress);
 
     }
 
