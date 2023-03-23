@@ -65,6 +65,12 @@ contract VaultTest is Test {
         assertEq(mockLSDVault.balanceOf(mockDistAddress), 10);
     }
 
+    /*function testShutdown() public {
+        vault.shutdown();
+        assertEq(confirm, false);
+    }*/
+
+
     receive() external payable {
     }
 
