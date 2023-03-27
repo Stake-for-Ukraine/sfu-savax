@@ -231,7 +231,6 @@ contract sAVAXvault is ERC20 {
         _to.transfer(_amount);
     }
 
-
     function checkFallback(address payable to) external returns (bool) {
         // Send 0 AVAX to the target address and check if it reverts
         (bool success,) = to.call{value: 0}("");
