@@ -71,7 +71,9 @@ contract HarvestManager {
     function distribute(address _distributionToken) external onlyOwner {
 
         IERC20(_distributionToken).approve(address(activeDistributeStrategyAddress), IERC20(_distributionToken).balanceOf(address(this)));
-        IERC20(_distributionToken).transferFrom(address(this), address(activeDistributeStrategyAddress), IERC20(_distributionToken).balanceOf(address(this)));
+        console.log("activeDistributeStrategyAddress: %s", activeDistributeStrategyAddress);
+        console.log("balanceOf: %s", IERC20(_distributionToken).balanceOf(address(activeDistributeStrategyAddress)));
+        //IERC20(_distributionToken).transferFrom(address(this), address(activeDistributeStrategyAddress), IERC20(_distributionToken).balanceOf(address(this)));
         IdistStrategy(activeDistributeStrategyAddress).distribute(_distributionToken);
         emit Distribute(_distributionToken, IERC20(_distributionToken).balanceOf(address(this)));
 

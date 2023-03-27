@@ -32,6 +32,7 @@ contract MockTJRouter is ILBRouter{
         
         USDC = tokenPath[1];
         amountOut = amountOutMin;
+        USDC.approve(address(this), amountOut);
         USDC.transferFrom(address(this), to, amountOut);
 
     }
