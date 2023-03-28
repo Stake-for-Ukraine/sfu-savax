@@ -1,18 +1,21 @@
-# Summary
-- [Home](README.md)
-# src
-  - [❱ interfaces](src/interfaces/README.md)
-    - [IbaseAsset](src/interfaces/IERC20.sol/contract.IbaseAsset.md)
-    - [IERC4626](src/interfaces/IERC4626.sol/contract.IERC4626.md)
-    - [ILBPair](src/interfaces/ILBPair.sol/contract.ILBPair.md)
-    - [Quote](src/interfaces/ILBQuoter.sol/struct.Quote.md)
-    - [ILBQuoter](src/interfaces/ILBQuoter.sol/contract.ILBQuoter.md)
-    - [ILBRouter](src/interfaces/ILBRouter.sol/contract.ILBRouter.md)
-    - [IStakedAvax](src/interfaces/IStakedAvax.sol/contract.IStakedAvax.md)
-    - [IdistStrategy](src/interfaces/IdistStrategy.sol/contract.IdistStrategy.md)
-    - [IswapStrategy](src/interfaces/IswapStrategy.sol/contract.IswapStrategy.md)
-  - [❱ strategies](src/strategies/README.md)
-    - [DistributeStrategy1](src/strategies/DistributeStrategy1.sol/contract.DistributeStrategy1.md)
-    - [SwapStrategy1](src/strategies/SwapStrategy1.sol/contract.SwapStrategy1.md)
-  - [HarvestManager](src/HarvestManager.sol/contract.HarvestManager.md)
-  - [sAVAXvault](src/sAVAXvault.sol/contract.sAVAXvault.md)
+---
+description: sfuAVAX is a wrapper around sAVAX (staked AVAX) developed by Benq.finance
+---
+
+# SUMMARY
+
+<figure><img src="../../.gitbook/assets/Stake for Ukraine.jpg" alt=""><figcaption></figcaption></figure>
+
+There are 3 core components of the sfuAVAX system: Vault, Manager and Strategies.
+
+## Vault
+
+[sfuAVAXvault](src/contract.savaxvault.md) - is wrapper around sAVAX Benqi liquid staking contract. Users can deposit AVAX or sAVAX and receive sfuAVAX representing their stake in sfuAVAX. The sfuAVAX vault contract is immutable. This improves security of user's deposits
+
+## Manager
+
+[HarvestManager](SUMMARY.md) - smart contract that manages swapping harvested yield to some assets suitable to be donated  to beneficiaries (e.g. Stablecoins), and distributing it to the list of beneficiaries. The logic for swapping and distribution lives in separate smart contract and can be updated through governance.
+
+## Strategies
+
+Strategy&#x20;
