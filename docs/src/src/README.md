@@ -1,7 +1,6 @@
+# Contracts
 
-
-# Contents
-- [interfaces](/src/interfaces)
-- [strategies](/src/strategies)
-- [HarvestManager](HarvestManager.sol/contract.HarvestManager.md)
-- [sAVAXvault](sAVAXvault.sol/contract.sAVAXvault.md)
+* [interfaces](../../../src/interfaces/)
+* [strategies](../../../src/strategies/)
+* [HarvestManager](contract.harvestmanager.md)
+* [sAVAXvault](contract.savaxvault.md)
