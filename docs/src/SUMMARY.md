@@ -20,8 +20,8 @@ There are 3 core components of the sfuAVAX system: Vault, Manager and Strategies
 
 There are two types of strategies that Manager needs - swap and distribution.
 
-**Swap strategy** contains a logic of swapping harvested yield in sAVAX to some ERC-20 token that makes sense to transger to beneficiaries. [SwapStrategy1](../../readme/src/src/stake-for-ukraine-sfu-savax.md) is an example of a strategy that implements logic of swapping sAVAX using Trader Joe DEX. In the future new strategies leveraging other DEXes can be implemented, based on where the best liquidity is available.
+**Swap strategy** contains a logic of swapping harvested yield in sAVAX to some ERC-20 token that makes sense to transfer to beneficiaries. [SwapStrategy1](../../readme/src/src/stake-for-ukraine-sfu-savax.md) is an example of a strategy that implements logic of swapping sAVAX using Trader Joe DEX. In the future new strategies leveraging other DEXes can be implemented, based on where the best liquidity is available.
 
-Distirbution strategy contains logic of transferring tokens to beneficiaries, list of beneficiaries' addresses and their shares. [DistributeStrategy1.sol](src/contract.distributestrategy1.md) implements logic that transfers yield to two benefieciaries with 50/50 split between them. &#x20;
+**Distribution strateg**y contains logic of transferring tokens to beneficiaries, list of beneficiaries' addresses and their shares. [DistributeStrategy1.sol](src/contract.distributestrategy1.md) implements logic that transfers yield to two beneficiaries with 50/50 split between them. &#x20;
 
 By calling `function updateDistributeStrategy()` or `function updateSwapStrategy()` of Manager contract it can be instructed new strategies implementing new logic, through governance.
