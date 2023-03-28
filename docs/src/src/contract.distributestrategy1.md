@@ -6,7 +6,7 @@ description: Strategy that distributes swapped yield to the list of beneficiarie
 
 [Git Source](https://github.com/Stake-for-Ukraine/sfu-savax/blob/855c70d84d498aafbcd341621f3e2d0d874da8ba/src/strategies/DistributeStrategy1.sol)
 
-**Inherits:** [IdistStrategy](../../src/interfaces/IdistStrategy.sol/contract.IdistStrategy.md)
+**Inherits:** [IdistStrategy](../../../src/interfaces/IdistStrategy.sol/contract.IdistStrategy.md)
 
 DistributeStrategy1 contract is an execution contract that is used by Harvest Manager to distribute funds to beneficiaries.
 
