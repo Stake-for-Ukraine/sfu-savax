@@ -1,5 +1,5 @@
 # sAVAXvault
-[Git Source](https://github.com/Stake-for-Ukraine/sfu-savax/blob/1e5f9b7d7b2ef6672dfad852e7feb508635caac7/src/sAVAXvault.sol)
+[Git Source](https://github.com/Stake-for-Ukraine/sfu-savax/blob/eca56343487ca867355097dbb6758c96361fe876/src/sAVAXvault.sol)
 
 **Inherits:**
 ERC20
