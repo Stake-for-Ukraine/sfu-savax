@@ -10,7 +10,7 @@ There are 3 core components of the sfuAVAX system: Vault, Manager and Strategies
 
 ## Vault
 
-[sfuAVAXvault](src/contract.savaxvault.md) - is wrapper around sAVAX Benqi liquid staking contract. Users can deposit AVAX or sAVAX and receive sfuAVAX representing their stake in sfuAVAX. The sfuAVAX vault contract is immutable. This improves security of user's deposits
+[sfuAVAXvault](broken-reference) - is wrapper around sAVAX Benqi liquid staking contract. Users can deposit AVAX or sAVAX and receive sfuAVAX representing their stake in sfuAVAX. The sfuAVAX vault contract is immutable. This improves security of user's deposits
 
 ## Manager
 
