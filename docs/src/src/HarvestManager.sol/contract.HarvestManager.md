@@ -1,5 +1,9 @@
 # HarvestManager
+<<<<<<< Updated upstream
 [Git Source](https://github.com/Stake-for-Ukraine/sfu-savax/blob/eca56343487ca867355097dbb6758c96361fe876/src/HarvestManager.sol)
+=======
+[Git Source](https://github.com/Stake-for-Ukraine/sfu-savax/blob/855c70d84d498aafbcd341621f3e2d0d874da8ba/src/HarvestManager.sol)
+>>>>>>> Stashed changes
 
 HarvetsManager is a proxy contract. Unlike the vault contract that is immutable,
 Manager is an upgradable contract owned by governance.When called, it will call the execution function
