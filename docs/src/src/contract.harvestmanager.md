@@ -2,9 +2,9 @@
 
 [Git Source](https://github.com/Stake-for-Ukraine/sfu-savax/blob/855c70d84d498aafbcd341621f3e2d0d874da8ba/src/HarvestManager.sol)
 
-HarvetsManager is a proxy contract. Unlike the vault contract that is immutable, Manager is an upgradable contract owned by governance.When called, it will call the execution function on the implementation contract.
+HarvestManager is a proxy contract. Unlike the vault contract that is immutable, Manager is an upgradable contract owned by governance.When called, it will call the execution function on the implementation contract.
 
-_Swap and distribute strategies are stored in the /strategies folder. Since this contract supports swaping any WRC-20 tokens, it is required to provide address of both tokens (in and out) to perform a swap._
+_Swap and distribute strategies are stored in the /strategies folder. Since this contract supports swapping any ERC-20 tokens, it is required to provide address of both tokens (in and out) to perform a swap._
 
 ### State Variables
 
