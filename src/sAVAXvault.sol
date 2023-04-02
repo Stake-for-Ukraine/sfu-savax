@@ -176,11 +176,11 @@ contract sAVAXvault is ERC20 {
     function harvest() external payable {
 
         require(!emergencyMode, "Vault: emergency mode is active"); 
-        //Amount of rewards that are not harvested (in AVAX)
+
         uint256 _unharvestedRewards;
         _unharvestedRewards = this.checkAVAXinsAVAX(totalShares) - totalAssets;
 
-         //Check how much of the sAVAX is not harvested (if any)
+
         if (_unharvestedRewards > 0){
             sAVAXcontract.transfer(harvestManagerAddress, this.checksAVAXinAVAX(_unharvestedRewards));
             emit Harvested(msg.sender, _unharvestedRewards);
