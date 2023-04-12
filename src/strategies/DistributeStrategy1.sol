@@ -50,8 +50,6 @@ contract DistributeStrategy1 is IdistStrategy {
     /// @param _distributionToken Address of the ERC-20 token that is distributed
     function distribute(address _distributionToken) external onlyManager {
 
-        console.log("addres this", address(this));
-
         require(beneficiaries.length == percentages.length, "Lengths must be equal");
         for(uint i = 0; i < percentages.length; i++) {
             require(percentages[i] >= 0 && percentages[i] <= 100, "Value must be between 0 and 100");
@@ -68,7 +66,6 @@ contract DistributeStrategy1 is IdistStrategy {
             } else {
 
                 uint256 _amount = _fundsToDistribute * percentages[i] / 100;
-                console.log("distribution started", _amount);
                 IERC20(_distributionToken).transferFrom(manager, beneficiaries[i], _amount);
                 emit Distribute(_distributionToken, _amount);
                 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import "../src/sAVAXvault.sol";
+import "../src/SfuAVAXvault.sol";
 import './mocks/MockERC20.sol';
 import './mocks/MockLSDVault.sol';
 import './mocks/MockDist.sol';
@@ -10,7 +10,7 @@ import '../lib/forge-std/src/console.sol';
 
 
 contract VaultTest is Test {
-    sAVAXvault public vault;
+    SfuAVAXvault public vault;
     MockERC20 public mockToken;
     MockLSDVault public mockLSDVault;
     MockDistribution public mockDistribution;
@@ -24,7 +24,7 @@ contract VaultTest is Test {
         mockDistribution = new MockDistribution();
         mockLSDVaultAddress = payable(address(mockLSDVault));
         mockDistAddress = payable(address(mockDistribution));
-        vault = new sAVAXvault(mockDistAddress, mockLSDVaultAddress);
+        vault = new SfuAVAXvault(mockDistAddress, mockLSDVaultAddress);
     }
 
     function testDeposit() public {

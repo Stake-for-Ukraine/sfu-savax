@@ -21,3 +21,5 @@ pycache
 *.db
 
 *.pytest_cache
+
+cast-commands.txt

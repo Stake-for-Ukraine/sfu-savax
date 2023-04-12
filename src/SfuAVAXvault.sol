@@ -14,7 +14,7 @@ import '../lib/forge-std/src/console.sol';
     * are donated to NGOs supporting Ukraine.
  */
 
-contract sAVAXvault is ERC20 {
+contract SfuAVAXvault is ERC20 {
 
     /* ========== STATE VARIABLES ========== */
 
@@ -77,7 +77,7 @@ contract sAVAXvault is ERC20 {
     /// @notice Contract constructor sets initial parameters when contract is deployed.
     /// @param _harvestManagerAddress Address of the Harvest Manager - contract that recieves harvested rewards and disitirbutes them to beneficiaries)
     /// @param _sAVAXaddress Address of the sAVAX ERC-20 contract;
-    constructor(address payable _harvestManagerAddress, address payable _sAVAXaddress) ERC20("Stake AVAX for Ukraine", "sfuAVAX") {
+    constructor(address payable _harvestManagerAddress, address payable _sAVAXaddress) ERC20("SFU alfa version", "alfuAVAX") {
 
         emergencyMode = false;
         sAVAXaddress = _sAVAXaddress;
@@ -235,6 +235,14 @@ contract sAVAXvault is ERC20 {
         // Send 0 AVAX to the target address and check if it reverts
         (bool success,) = to.call{value: 0}("");
         return success;
+    }
+
+    /// @notice The function that owner calls to transfer ownership of the contract.
+    /// @param _newOwner The address of the new owner.
+    function changeOwner(address _newOwner) external onlyOwner {
+
+        owner = _newOwner;
+
     }
 
 }
