@@ -32,7 +32,7 @@ contract VaultTest is Test {
         console.log("Deposit 100");
         assertEq(address(vault).balance, 100);
         assertEq(vault.totalSupply(), 100);
-        assertEq(vault.totalDeposit(address(this)), 100);
+        assertEq(vault.balanceOf(address(this)), 100);
         console.log("Asserted", address(vault));
     }
 
@@ -52,7 +52,7 @@ contract VaultTest is Test {
         vault.stake();
         assertEq(address(vault).balance, 0);
         assertEq(vault.totalSupply(), 100);
-        assertEq(vault.totalDeposit(address(this)), 100);
+        assertEq(vault.balanceOf(address(this)), 100);
         assertEq(mockLSDVault.balanceOf(address(vault)), 100);
     }
 
@@ -61,7 +61,7 @@ contract VaultTest is Test {
         vault.stake();
         vault.harvest();
         assertEq(vault.totalSupply(), 100);
-        assertEq(vault.totalDeposit(address(this)), 100);
+        assertEq(vault.balanceOf(address(this)), 100);
         assertEq(mockLSDVault.balanceOf(mockDistAddress), 10);
     }
 

@@ -33,7 +33,7 @@ contract SfuAVAXvault is ERC20 {
     bool public emergencyMode;
     
     /// @notice Balances of each individual users in AVAX
-    mapping (address => uint256) public totalDeposit; //summary of all deposits minus of all withdrawals for one user;
+    // mapping (address => uint256) public balances; //summary of all deposits minus of all withdrawals for one user;
 
     /* ========== EVENTS ========== */
 
@@ -85,49 +85,35 @@ contract SfuAVAXvault is ERC20 {
     /// @notice Allows users to deposit AVAX to the contract and mints sfuAVAX in return
     /// @param _receiver Address of the user who will receive sfuAVAX
     function deposit(address _receiver) external payable returns (uint256 _shares) {
-
         require(!emergencyMode, "Vault: emergency mode is active");
         require(msg.value > 0, "Amount must be greater than 0");
         require(msg.sender.balance > msg.value, "Vault: deposit amount must be greater than 0");
         require(_receiver != address(0), "Vault: receiver address must be non-zero address");
 
-        if (this.totalSupply() == 0) {
-            _shares = msg.value;
-        } else {
-            _shares = msg.value * this.totalSupply() / address(this).balance;
-        }
-
-        totalDeposit[msg.sender] += msg.value;
-
-        _mint(_receiver, _shares);
-
+        // balances[msg.sender] += msg.value;
+        _mint(_receiver, msg.value);
         emit Deposit(msg.sender, msg.value);
+        return msg.value;
     }
 
     /// @notice Allows users to withdraw sAVAX from the contract and burns sfuAVAX in return
-    /// @param _shares Amount of sfuAVAX to burn
+    /// @param _amount Amount of sfuAVAX to burn
     /// @param _receiver Address of the user who will receive sAVAX
-    function withdraw(uint256 _shares, address payable _receiver) external {
-
+    function withdraw(uint256 _amount, address payable _receiver) external {
         uint256 _sAVAXtoWithdraw;
         require(_receiver != address(0), "Vault: receiver address must be non-zero address");
-        require(_shares > 0 && _shares <= this.totalSupply(), "Vault: withdraw amount must be greater than 0 and less than totalSupply");
-        require(totalDeposit[msg.sender] >= _shares, "Vault: withdraw amount must be less than or equal to balance");
+        require(_amount > 0 && _amount <= this.totalSupply(), "Vault: withdraw amount must be greater than 0 and less than totalSupply");
+        _burn(msg.sender, _amount);
 
-
-        if (_shares <= address(this).balance) {
-                _safeTransfer(_receiver, _shares);
-            } else {
-                _sAVAXtoWithdraw = this.checksAVAXinAVAX(_shares);
-                sAVAXcontract.approve(_receiver, _sAVAXtoWithdraw);
-                sAVAXcontract.transferFrom(address(this), _receiver, _sAVAXtoWithdraw);
+        if (_amount <= address(this).balance) {
+            _receiver.transfer(_amount);
+        } else {
+            _sAVAXtoWithdraw = this.checksAVAXinAVAX(_amount);
+            sAVAXcontract.approve(_receiver, _sAVAXtoWithdraw);
+            sAVAXcontract.transferFrom(address(this), _receiver, _sAVAXtoWithdraw);
         }
 
-        totalDeposit[msg.sender] -= _shares;
-
-        _burn(msg.sender, _shares);
-
-        emit Withdraw(msg.sender, _receiver, _shares);
+        emit Withdraw(msg.sender, _receiver, _amount);
     }
 
     /// @notice Allows users to stake available AVAX in the contract with Benqi.fi sAVAX staking contract
@@ -199,7 +185,6 @@ contract SfuAVAXvault is ERC20 {
 
     /// @notice Standard fallback function that allows contract to recieve native tokens (AVAX)
     receive() external payable {
-
         require(!emergencyMode, "Vault: emergency mode is active");
         this.deposit{value: msg.value}(msg.sender);
     }
@@ -209,27 +194,9 @@ contract SfuAVAXvault is ERC20 {
         revert();
     }
 
-    /// @notice Helper function that transfer AVAX to given address, internal, only used in this contract
-    /// @param _to Address of the address that will receive AVAX
-    /// @param _amount Amount of AVAX to transfer
-    function _safeTransfer(address payable _to, uint _amount) internal {
-        require(_to != address(0), "Can't transfer to zero address");
-        require(_amount <= address(this).balance, "Not enough funds");
-        _to.transfer(_amount);
-    }
-
-    function checkFallback(address payable to) external returns (bool) {
-        // Send 0 AVAX to the target address and check if it reverts
-        (bool success,) = to.call{value: 0}("");
-        return success;
-    }
-
     /// @notice The function that owner calls to transfer ownership of the contract.
     /// @param _newOwner The address of the new owner.
     function changeOwner(address _newOwner) external onlyOwner {
-
         owner = _newOwner;
-
     }
-
 }
