@@ -30,8 +30,8 @@ contract VaultTest is Test {
     function testDeposit() public {
         vault.deposit{value: 100}(address(this));
         console.log("Deposit 100");
-        assertEq(vault.totalAssets(), 100);
-        assertEq(vault.totalShares(), 100);
+        assertEq(address(vault).balance, 100);
+        assertEq(vault.totalSupply(), 100);
         assertEq(vault.totalDeposit(address(this)), 100);
         console.log("Asserted", address(vault));
     }
@@ -41,8 +41,8 @@ contract VaultTest is Test {
         vault.deposit{value: 200}(address(this));
         vault.withdraw(100, payable(address(this)));
 
-        assertEq(vault.totalAssets(), 100);
-        assertEq(vault.totalShares(), 100);
+        assertEq(address(vault).balance, 100);
+        assertEq(vault.totalSupply(), 100);
         assertEq(address(this).balance, myAVAXbalance - 100);
         //assertEq(mockLSDVault.balanceOf(address(this)), 100);
     }
@@ -51,7 +51,7 @@ contract VaultTest is Test {
         vault.deposit{value: 100}(address(this));
         vault.stake();
         assertEq(address(vault).balance, 0);
-        assertEq(vault.totalShares(), 100);
+        assertEq(vault.totalSupply(), 100);
         assertEq(vault.totalDeposit(address(this)), 100);
         assertEq(mockLSDVault.balanceOf(address(vault)), 100);
     }
@@ -60,7 +60,7 @@ contract VaultTest is Test {
         vault.deposit{value: 100}(address(this));
         vault.stake();
         vault.harvest();
-        assertEq(vault.totalShares(), 100);
+        assertEq(vault.totalSupply(), 100);
         assertEq(vault.totalDeposit(address(this)), 100);
         assertEq(mockLSDVault.balanceOf(mockDistAddress), 10);
     }

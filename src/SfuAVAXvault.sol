@@ -29,12 +29,6 @@ contract SfuAVAXvault is ERC20 {
     /// @notice Address of the owner of the contract
     address public owner;
 
-    /// @notice Total amount of sfuAVAX issued by this contract to depositors of AVAX/sAVAX
-    uint256 public totalShares;
-
-    /// @notice Total amount deposited by all users in AVAX to this contract minus amount withdrawn by all users
-    uint256 public totalAssets;
-
     /// @notice When true means that contract is in emergency mode and deposits are disabled, staking of available AVAX is disabled, withdrawals are enabled.
     bool public emergencyMode;
     
@@ -52,8 +46,7 @@ contract SfuAVAXvault is ERC20 {
     /// @param caller Address of the user who withdrew AVAX
     /// @param receiver Address of the user who received AVAX
     /// @param amount Amount of AVAX withdrawn
-    /// @param shares Amount of sfuAVAX burned
-    event Withdraw(address caller, address receiver, uint256 amount, uint256 shares);
+    event Withdraw(address caller, address receiver, uint256 amount);
 
     /// @notice Emitted when harvest function is triggered and staking rewards are harvested
     /// @param caller Address of the user who triggered harvest function
@@ -85,8 +78,6 @@ contract SfuAVAXvault is ERC20 {
         harvestManagerAddress = _harvestManagerAddress;
         owner = msg.sender;
 
-        totalAssets = 0;
-        totalShares = 0;
     }
 
     /* ========== MAIN FUNCTIONALITY ========== */
@@ -100,15 +91,13 @@ contract SfuAVAXvault is ERC20 {
         require(msg.sender.balance > msg.value, "Vault: deposit amount must be greater than 0");
         require(_receiver != address(0), "Vault: receiver address must be non-zero address");
 
-        if (totalShares == 0) {
+        if (this.totalSupply() == 0) {
             _shares = msg.value;
         } else {
-            _shares = msg.value * totalShares / totalAssets;
+            _shares = msg.value * this.totalSupply() / address(this).balance;
         }
 
         totalDeposit[msg.sender] += msg.value;
-        totalAssets += msg.value;
-        totalShares += _shares;
 
         _mint(_receiver, _shares);
 
@@ -118,36 +107,31 @@ contract SfuAVAXvault is ERC20 {
     /// @notice Allows users to withdraw sAVAX from the contract and burns sfuAVAX in return
     /// @param _shares Amount of sfuAVAX to burn
     /// @param _receiver Address of the user who will receive sAVAX
-    function withdraw(uint256 _shares, address payable _receiver) external payable {
+    function withdraw(uint256 _shares, address payable _receiver) external {
 
-        uint256 _AVAXtoWithdraw;
         uint256 _sAVAXtoWithdraw;
         require(_receiver != address(0), "Vault: receiver address must be non-zero address");
-        require(_shares > 0, "Vault: withdraw amount must be greater than 0");
+        require(_shares > 0 && _shares <= this.totalSupply(), "Vault: withdraw amount must be greater than 0 and less than totalSupply");
         require(totalDeposit[msg.sender] >= _shares, "Vault: withdraw amount must be less than or equal to balance");
 
-        _AVAXtoWithdraw = _shares * totalAssets / totalShares;
 
-
-        if (_AVAXtoWithdraw <= totalAssets) {
-                _safeTransfer(_receiver, _AVAXtoWithdraw);
+        if (_shares <= address(this).balance) {
+                _safeTransfer(_receiver, _shares);
             } else {
-                _sAVAXtoWithdraw = this.checksAVAXinAVAX(_AVAXtoWithdraw);
+                _sAVAXtoWithdraw = this.checksAVAXinAVAX(_shares);
                 sAVAXcontract.approve(_receiver, _sAVAXtoWithdraw);
                 sAVAXcontract.transferFrom(address(this), _receiver, _sAVAXtoWithdraw);
         }
 
-        totalDeposit[msg.sender] -= _AVAXtoWithdraw;
-        totalAssets -= _AVAXtoWithdraw;
-        totalShares -= _shares;
+        totalDeposit[msg.sender] -= _shares;
 
         _burn(msg.sender, _shares);
 
-        emit Withdraw(msg.sender, _receiver, _AVAXtoWithdraw, _shares);
+        emit Withdraw(msg.sender, _receiver, _shares);
     }
 
     /// @notice Allows users to stake available AVAX in the contract with Benqi.fi sAVAX staking contract
-    function stake() external payable returns (uint256) {
+    function stake() external returns (uint256) {
 
         require(!emergencyMode, "Vault: emergency mode is active");
 
@@ -170,15 +154,18 @@ contract SfuAVAXvault is ERC20 {
     }
 
     /** 
-        @notice Allows to harvest staking rewards earned from user's deposit to Benqi.fi sAVAX staking contract. 
+        @notice Allows to harvest staking rewards earned from staked sAVAX from user's deposits to the vault. 
         Harvested rewards are sent to the Harvest Manager contract. 
     */
-    function harvest() external payable {
+    function harvest() external {
 
         require(!emergencyMode, "Vault: emergency mode is active"); 
 
         uint256 _unharvestedRewards;
-        _unharvestedRewards = this.checkAVAXinsAVAX(totalShares) - totalAssets;
+        console.log("this totalSupply", this.totalSupply());
+        console.log("address(this).balance", address(this).balance);
+        _unharvestedRewards = this.checkAVAXinsAVAX(this.totalSupply()) - this.totalSupply();
+        console.log("_unharvestedRewards", _unharvestedRewards);
 
 
         if (_unharvestedRewards > 0){
@@ -201,13 +188,13 @@ contract SfuAVAXvault is ERC20 {
     /// @notice Converts AVAX to sAVAX
     /// @param _amount Amount of AVAX to convert
     function checkAVAXinsAVAX(uint256 _amount) external view returns (uint256) {
-        return sAVAXcontract.getPooledAvaxByShares(_amount);
+        return sAVAXcontract.getSharesByPooledAvax(_amount);
     }
 
     /// @notice Converts sAVAX to AVAX
     /// @param _amount Amount of sAVAX to convert
     function checksAVAXinAVAX(uint256 _amount) external view returns (uint256) {
-        return sAVAXcontract.getSharesByPooledAvax(_amount);
+        return sAVAXcontract.getPooledAvaxByShares(_amount);
     }
 
     /// @notice Standard fallback function that allows contract to recieve native tokens (AVAX)
