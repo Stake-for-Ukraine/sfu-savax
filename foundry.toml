@@ -7,3 +7,7 @@ solc_version = '0.8.17'
 
 [profile.networks.local]
 url = "http://localhost:8545"
+
+[rpc_endpoints]
+mainnet = "https://api.avax.network/ext/bc/C/rpc"
+

@@ -15,9 +15,7 @@ import '../lib/forge-std/src/console.sol';
  */
 
 contract SfuAVAXvault is ERC20 {
-
     /* ========== STATE VARIABLES ========== */
-
     IStakedAvax public sAVAXcontract;
 
     /// @notice Address of the Harvest Manager - contract that recieves harvested rewards and disitirbutes them to beneficiaries)
@@ -103,16 +101,16 @@ contract SfuAVAXvault is ERC20 {
         uint256 _sAVAXtoWithdraw;
         require(_receiver != address(0), "Vault: receiver address must be non-zero address");
         require(_amount > 0 && _amount <= this.totalSupply(), "Vault: withdraw amount must be greater than 0 and less than totalSupply");
-        _burn(msg.sender, _amount);
 
         if (_amount <= address(this).balance) {
             _receiver.transfer(_amount);
         } else {
-            _sAVAXtoWithdraw = this.checksAVAXinAVAX(_amount);
-            sAVAXcontract.approve(_receiver, _sAVAXtoWithdraw);
-            sAVAXcontract.transferFrom(address(this), _receiver, _sAVAXtoWithdraw);
+            _sAVAXtoWithdraw = this.checkAVAXinsAVAX(_amount);
+            // sAVAXcontract.approve(_receiver, _sAVAXtoWithdraw);
+            assert(sAVAXcontract.transfer(_receiver, _sAVAXtoWithdraw));
         }
 
+        _burn(msg.sender, _amount);
         emit Withdraw(msg.sender, _receiver, _amount);
     }
 
@@ -144,22 +142,15 @@ contract SfuAVAXvault is ERC20 {
         Harvested rewards are sent to the Harvest Manager contract. 
     */
     function harvest() external {
-
         require(!emergencyMode, "Vault: emergency mode is active"); 
 
-        uint256 _unharvestedRewards;
-        console.log("this totalSupply", this.totalSupply());
-        console.log("address(this).balance", address(this).balance);
-        _unharvestedRewards = this.checkAVAXinsAVAX(this.totalSupply()) - this.totalSupply();
-        console.log("_unharvestedRewards", _unharvestedRewards);
+        uint256 allAVAX = this.checksAVAXinAVAX(sAVAXcontract.balanceOf(address(this)));
 
-
-        if (_unharvestedRewards > 0){
-            sAVAXcontract.transfer(harvestManagerAddress, this.checksAVAXinAVAX(_unharvestedRewards));
-            emit Harvested(msg.sender, _unharvestedRewards);
+        if (allAVAX > totalSupply()){
+            uint256 AVAXToHarvest = allAVAX - totalSupply();
+            sAVAXcontract.transfer(harvestManagerAddress, this.checksAVAXinAVAX(AVAXToHarvest));
+            emit Harvested(msg.sender, AVAXToHarvest);
         }
-
-
     }
 
     /* ========== MANAGEMENT FUNCTIONS ========== */
