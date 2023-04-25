@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import '../interfaces/IdistStrategy.sol';
+import '../interfaces/IDistributionStrategy.sol';
 import 'openzeppelin-contracts/token/ERC20/IERC20.sol';
 import '../../lib/forge-std/src/console.sol';
 
@@ -9,7 +9,7 @@ import '../../lib/forge-std/src/console.sol';
  * @title DistributeStrategy1
  * @notice DistributeStrategy1 contract is an execution contract that is used by Harvest Manager to distribute funds to beneficiaries. 
  */
-contract DistributeStrategy1 is IdistStrategy {
+contract DistributeStrategy1 is IDistributionStrategy {
 
     /// @notice Array of addresses of beneficiaries who recieve funding
     address[] public beneficiaries;

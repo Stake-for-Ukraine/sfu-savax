@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import '../../lib/forge-std/src/console.sol';
-import '../interfaces/IswapStrategy.sol';
+import '../interfaces/ISwapStrategy.sol';
 import '../interfaces/ILBQuoter.sol';
 import '../interfaces/ILBRouter.sol';
 import '../interfaces/ILBPair.sol';
@@ -16,7 +16,7 @@ import 'openzeppelin-contracts/token/ERC20/IERC20.sol';
 
 
 
-contract SwapStrategy1 is IswapStrategy {
+contract SwapStrategy1 is ISwapStrategy {
     
     /// @notice address of the Harvest manager, which is also should be an owner of this contract;
     address public manager;
@@ -37,19 +37,15 @@ contract SwapStrategy1 is IswapStrategy {
     /// @param _router address of the Trader Joe Router;
     /// @param _quoter address of the Trader Joe Quoter;    
     constructor (address _manager, address _router, address _quoter) {
-
         manager = _manager;
         router = ILBRouter(_router);
         quoter = ILBQuoter(_quoter);
-
     }
 
     /// @notice modifier that is used to restrict access to the function only to the manager;
     modifier onlyManager() {
-
         require(msg.sender == manager, "Only manager can call this function.");
         _;
-
     }
 
     /**
