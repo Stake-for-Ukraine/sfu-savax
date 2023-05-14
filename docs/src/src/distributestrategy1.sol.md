@@ -1,2 +1,0 @@
-# DistributeStrategy1.sol
-
