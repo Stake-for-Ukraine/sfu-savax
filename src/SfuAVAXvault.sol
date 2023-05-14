@@ -10,12 +10,12 @@ import '../lib/forge-std/src/console.sol';
     * @title sAVAXvault
     * @author Oleksii Novykov
     * @notice sAVAXvault is wrapper for Benqi liquid staking (sAVAX). 
-    * Users can deposit AVAX or sAVAX and recieve sfuAVAX. Staking rewards 
+    * Users can deposit AVAX and recieve sfuAVAX. Staking rewards 
     * are donated to NGOs supporting Ukraine.
  */
 
 contract SfuAVAXvault is ERC20 {
-    /* ========== STATE VARIABLES ========== */
+
     IStakedAvax public sAVAXcontract;
 
     /// @notice Address of the Harvest Manager - contract that recieves harvested rewards and disitirbutes them to beneficiaries)
@@ -32,8 +32,6 @@ contract SfuAVAXvault is ERC20 {
     
     /// @notice Balances of each individual users in AVAX
     // mapping (address => uint256) public balances; //summary of all deposits minus of all withdrawals for one user;
-
-    /* ========== EVENTS ========== */
 
     /// @notice Emitted when a user deposits AVAX
     /// @param caller Address of the user who deposited AVAX
@@ -78,8 +76,6 @@ contract SfuAVAXvault is ERC20 {
 
     }
 
-    /* ========== MAIN FUNCTIONALITY ========== */
-
     /// @notice Allows users to deposit AVAX to the contract and mints sfuAVAX in return
     /// @param _receiver Address of the user who will receive sfuAVAX
     function deposit(address _receiver) external payable returns (uint256 _shares) {
@@ -105,7 +101,7 @@ contract SfuAVAXvault is ERC20 {
         if (_amount <= address(this).balance) {
             _receiver.transfer(_amount);
         } else {
-            _sAVAXtoWithdraw = this.checkAVAXinsAVAX(_amount);
+            _sAVAXtoWithdraw = sAVAXcontract.getSharesByPooledAvax(_amount);
             // sAVAXcontract.approve(_receiver, _sAVAXtoWithdraw);
             assert(sAVAXcontract.transfer(_receiver, _sAVAXtoWithdraw));
         }
@@ -144,35 +140,20 @@ contract SfuAVAXvault is ERC20 {
     function harvest() external {
         require(!emergencyMode, "Vault: emergency mode is active"); 
 
-        uint256 allAVAX = this.checksAVAXinAVAX(sAVAXcontract.balanceOf(address(this)));
+        uint256 allAVAX = sAVAXcontract.getPooledAvaxByShares(sAVAXcontract.balanceOf(address(this)));
 
         if (allAVAX > totalSupply()){
             uint256 AVAXToHarvest = allAVAX - totalSupply();
-            sAVAXcontract.transfer(harvestManagerAddress, this.checksAVAXinAVAX(AVAXToHarvest));
+            sAVAXcontract.transfer(harvestManagerAddress, sAVAXcontract.getPooledAvaxByShares(AVAXToHarvest));
             emit Harvested(msg.sender, AVAXToHarvest);
         }
     }
-
-    /* ========== MANAGEMENT FUNCTIONS ========== */
 
     /// @notice Allows Manager to put the vault in shutdown mode. No new deposits are allowed. Withdrawals only.
     function shutdown() external onlyOwner {
         emergencyMode = true;
     }
 
-    /* ========== HELPER FUNCTIONS ========== */
-
-    /// @notice Converts AVAX to sAVAX
-    /// @param _amount Amount of AVAX to convert
-    function checkAVAXinsAVAX(uint256 _amount) external view returns (uint256) {
-        return sAVAXcontract.getSharesByPooledAvax(_amount);
-    }
-
-    /// @notice Converts sAVAX to AVAX
-    /// @param _amount Amount of sAVAX to convert
-    function checksAVAXinAVAX(uint256 _amount) external view returns (uint256) {
-        return sAVAXcontract.getPooledAvaxByShares(_amount);
-    }
 
     /// @notice Standard fallback function that allows contract to recieve native tokens (AVAX)
     receive() external payable {
