@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import '../interfaces/IdistStrategy.sol';
+import '../interfaces/IDistributionStrategy.sol';
 import 'openzeppelin-contracts/token/ERC20/IERC20.sol';
 import '../../lib/forge-std/src/console.sol';
 
@@ -9,7 +9,7 @@ import '../../lib/forge-std/src/console.sol';
  * @title DistributeStrategy1
  * @notice DistributeStrategy1 contract is an execution contract that is used by Harvest Manager to distribute funds to beneficiaries. 
  */
-contract DistributeStrategy1 is IdistStrategy {
+contract DistributeStrategy1 is IDistributionStrategy {
 
     /// @notice Array of addresses of beneficiaries who recieve funding
     address[] public beneficiaries;
@@ -50,8 +50,6 @@ contract DistributeStrategy1 is IdistStrategy {
     /// @param _distributionToken Address of the ERC-20 token that is distributed
     function distribute(address _distributionToken) external onlyManager {
 
-        console.log("addres this", address(this));
-
         require(beneficiaries.length == percentages.length, "Lengths must be equal");
         for(uint i = 0; i < percentages.length; i++) {
             require(percentages[i] >= 0 && percentages[i] <= 100, "Value must be between 0 and 100");
@@ -68,7 +66,6 @@ contract DistributeStrategy1 is IdistStrategy {
             } else {
 
                 uint256 _amount = _fundsToDistribute * percentages[i] / 100;
-                console.log("distribution started", _amount);
                 IERC20(_distributionToken).transferFrom(manager, beneficiaries[i], _amount);
                 emit Distribute(_distributionToken, _amount);
                 

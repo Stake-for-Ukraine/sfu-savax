@@ -8,4 +8,5 @@ interface IStakedAvax is IERC20Upgradeable {
     function getSharesByPooledAvax(uint avaxAmount) external view returns (uint);
     function getPooledAvaxByShares(uint shareAmount) external view returns (uint);
     function submit() external payable returns (uint);
+    function totalPooledAvax() external returns (uint);
 }
