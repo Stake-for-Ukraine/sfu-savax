@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import './interfaces/IERC4626.sol';
 import 'openzeppelin-contracts/token/ERC20/ERC20.sol';
 import './interfaces/IStakedAvax.sol';
 import '../lib/forge-std/src/console.sol';
