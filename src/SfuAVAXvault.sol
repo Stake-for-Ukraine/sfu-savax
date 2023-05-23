@@ -170,4 +170,10 @@ contract SfuAVAXvault is ERC20 {
     function changeOwner(address _newOwner) external onlyOwner {
         owner = _newOwner;
     }
+
+    /// @notice The function that owner calls to change the address of the Harvest Manager contract.
+    /// @param _newHarvestManagerAddress The address of the new Harvest Manager contract.
+    function changeHarvestManagerAddress(address payable _newHarvestManagerAddress) external onlyOwner {
+        harvestManagerAddress = _newHarvestManagerAddress;
+    }
 }
