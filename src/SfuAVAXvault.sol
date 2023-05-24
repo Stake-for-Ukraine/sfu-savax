@@ -17,7 +17,7 @@ contract SfuAVAXvault is ERC20 {
 
     IStakedAvax public sAVAXcontract;
 
-    /// @notice Address of the Harvest Manager - contract that recieves harvested rewards and disitirbutes them to beneficiaries)
+    /// @notice Address of the Harvest Manager - contract that recieves harvested rewards and swaps / disitirbutes them to beneficiaries, according to active strategies logic.
     address payable public harvestManagerAddress;
 
     /// @notice Address of the sAVAX ERC-20 contract;
@@ -28,9 +28,6 @@ contract SfuAVAXvault is ERC20 {
 
     /// @notice When true means that contract is in emergency mode and deposits are disabled, staking of available AVAX is disabled, withdrawals are enabled.
     bool public emergencyMode;
-    
-    /// @notice Balances of each individual users in AVAX
-    // mapping (address => uint256) public balances; //summary of all deposits minus of all withdrawals for one user;
 
     /// @notice Emitted when a user deposits AVAX
     /// @param caller Address of the user who deposited AVAX
@@ -53,12 +50,24 @@ contract SfuAVAXvault is ERC20 {
     /// @param amount Amount staked (in AVAX)
     event Staked(address caller, uint256 amount);
 
+    /// @notice Emitted when emergency mode is switched
+    /// @param emergencyMode Boolean value of the emergencyMode
+    event EmergencyModeSwitched(bool emergencyMode);
+
+    /// @notice Emitted when owner is updated;
+    /// @param oldOwner Address of the old owner;
+    /// @param newOwner Address of the new owner;
+    event OwnerUpdated(address oldOwner, address newOwner);
+    
+    /// @notice Emitted when Harvest Manager address is updated;
+    /// @param oldHarvestManagerAddress Address of the old Harvest Manager;
+    /// @param newHarvestManagerAddress Address of the new Harvest Manager;
+    event HarvestManagerAddressUpdated(address oldHarvestManagerAddress, address newHarvestManagerAddress);
+
     /// @notice modifier that is used to restrict access to the function only to the manager;
     modifier onlyOwner() {
-
         require(msg.sender == owner, "Only owner can call this function.");
         _;
-
     }
 
 
@@ -66,13 +75,11 @@ contract SfuAVAXvault is ERC20 {
     /// @param _harvestManagerAddress Address of the Harvest Manager - contract that recieves harvested rewards and disitirbutes them to beneficiaries)
     /// @param _sAVAXaddress Address of the sAVAX ERC-20 contract;
     constructor(address payable _harvestManagerAddress, address payable _sAVAXaddress) ERC20("SFU alfa version", "alfuAVAX") {
-
         emergencyMode = false;
         sAVAXaddress = _sAVAXaddress;
         sAVAXcontract = IStakedAvax(sAVAXaddress);
         harvestManagerAddress = _harvestManagerAddress;
         owner = msg.sender;
-
     }
 
     /// @notice Allows users to deposit AVAX to the contract and mints sfuAVAX in return
@@ -83,7 +90,6 @@ contract SfuAVAXvault is ERC20 {
         require(msg.sender.balance > msg.value, "Vault: deposit amount must be greater than 0");
         require(_receiver != address(0), "Vault: receiver address must be non-zero address");
 
-        // balances[msg.sender] += msg.value;
         _mint(_receiver, msg.value);
         emit Deposit(msg.sender, msg.value);
         return msg.value;
@@ -111,7 +117,6 @@ contract SfuAVAXvault is ERC20 {
 
     /// @notice Allows users to stake available AVAX in the contract with Benqi.fi sAVAX staking contract
     function stake() external returns (uint256) {
-
         require(!emergencyMode, "Vault: emergency mode is active");
 
         /// Check how much of the baseAsset is not invested (if any)
@@ -148,9 +153,14 @@ contract SfuAVAXvault is ERC20 {
         }
     }
 
-    /// @notice Allows Manager to put the vault in shutdown mode. No new deposits are allowed. Withdrawals only.
-    function shutdown() external onlyOwner {
-        emergencyMode = true;
+    /// @notice Allows owner to put the vault in shutdown mode. No new deposits are allowed. Withdrawals only.
+    function emergencyModeSwitch() external onlyOwner {
+        if (emergencyMode == false) {
+            emergencyMode = true;
+        } else {
+            emergencyMode = false;
+        }
+        emit EmergencyModeSwitched(emergencyMode);
     }
 
 
@@ -169,11 +179,14 @@ contract SfuAVAXvault is ERC20 {
     /// @param _newOwner The address of the new owner.
     function changeOwner(address _newOwner) external onlyOwner {
         owner = _newOwner;
+        emit OwnerUpdated(msg.sender, _newOwner);
     }
 
     /// @notice The function that owner calls to change the address of the Harvest Manager contract.
     /// @param _newHarvestManagerAddress The address of the new Harvest Manager contract.
     function changeHarvestManagerAddress(address payable _newHarvestManagerAddress) external onlyOwner {
+        address _oldHarvestManagerAddress = harvestManagerAddress;
         harvestManagerAddress = _newHarvestManagerAddress;
+        emit HarvestManagerAddressUpdated(_oldHarvestManagerAddress, _newHarvestManagerAddress);
     }
 }

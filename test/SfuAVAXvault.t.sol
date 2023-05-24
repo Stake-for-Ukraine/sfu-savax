@@ -99,7 +99,7 @@ contract VaultTest is Test {
     }
 
     function testShutdown() public {
-        vault.shutdown();
+        vault.emergencyModeSwitch();
         assertEq(vault.emergencyMode(), true);
     }
 
