@@ -3,21 +3,19 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import "../src/SfuAVAXvault.sol";
-import './mocks/MockERC20.sol';
-import './mocks/MockLSDVault.sol';
-import './mocks/MockDist.sol';
 import '../lib/forge-std/src/console.sol';
 import 'openzeppelin-contracts/token/ERC20/ERC20.sol';
 import "../src/interfaces/IStakedAvax.sol";
+import {HarvestManager} from "../src/HarvestManager.sol";
+import {DistributeToTreasury} from "../src/strategies/TempStrat.sol";
 
 
 contract VaultTest is Test {
     SfuAVAXvault public vault;
-    MockDistribution public mockDistribution;
+    HarvestManager public harvestManager;
     ERC20 public sAVAX;
 
-    address payable public mockLSDVaultAddress;
-    address payable public mockDistAddress;
+    address payable public harvestManagerAddress;
     address payable public sAVAXAddress;
     using stdStorage for StdStorage;
 
@@ -26,11 +24,10 @@ contract VaultTest is Test {
         vm.selectFork(forkId);
 
         sAVAXAddress = payable(0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE);
-        // mockLSDVault = new MockLSDVault();
         sAVAX = ERC20(sAVAXAddress);
-        mockDistribution = new MockDistribution();
-        mockDistAddress = payable(address(mockDistribution));
-        vault = new SfuAVAXvault(mockDistAddress, sAVAXAddress);
+        harvestManager = new HarvestManager();
+        harvestManagerAddress = payable(address(harvestManager));
+        vault = new SfuAVAXvault(harvestManagerAddress, sAVAXAddress);
         console.logBytes32(keccak256(abi.encode("totalPooledAvax()")));
     }
 
@@ -63,11 +60,9 @@ contract VaultTest is Test {
         assertEq(address(vault).balance, 100);
         assertEq(vault.totalSupply(), 100);
         assertEq(address(this).balance, myAVAXbalance - 100);
-        //assertEq(mockLSDVault.balanceOf(address(this)), 100);
     }
 
     function testWithdraw_inSAVAX() public {
-        // uint myAVAXbalance = address(this).balance;
         vault.deposit{value: 200 ether}(address(this));
         vault.stake();
         vault.withdraw(200 ether, payable(address(this)));
@@ -95,11 +90,11 @@ contract VaultTest is Test {
         vault.harvest();
         assertEq(vault.totalSupply(), 100 ether);
         assertEq(vault.balanceOf(address(this)), 100 ether);
-        require(sAVAX.balanceOf(mockDistAddress) > 0);
+        require(sAVAX.balanceOf(harvestManagerAddress) > 0);
     }
 
     function testShutdown() public {
-        vault.shutdown();
+        vault.emergencyModeSwitch();
         assertEq(vault.emergencyMode(), true);
     }
 
