@@ -12,7 +12,6 @@ contract SFUScript is Script {
     DistributeToTreasury public distributeToTreasury;
 
     function run() public {
-
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
         vm.startBroadcast(deployerPrivateKey);
@@ -23,6 +22,5 @@ contract SFUScript is Script {
         harvestManager.updateDistributeStrategy(address(distributeToTreasury));
 
         vm.stopBroadcast();
-
     }
 }
