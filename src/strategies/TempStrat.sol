@@ -7,45 +7,50 @@ import '../../lib/forge-std/src/console.sol';
 
 /**
  * @title DistributeStrategy1
- * @notice DistributeStrategy1 contract is an execution contract that is used by Harvest harvestManager to distribute funds to beneficiaries. 
+ * @notice DistributeToTreasury contract is an execution contract that is used by Harvest Manager. 
+ * This is a simplified version of the strategy that is used to distribute funds to the treasury. Treasury is a multi-sig wallet.
+ * While there is some risk in using a multi-sig wallet, it is a temporary solution until governenace is implemented 
+ * and more sofisiticated harvest management strategies are developed. It is important to mention, that only harvested 
+ * rewards are collected in the treasury. User's deposits are stored in the vault and nor multi-sig, 
+ * nor future governance will not be able to acces those funds.
  */
 contract DistributeToTreasury is IDistributionStrategy {
 
-    /// @notice Address of the treasury where sAVAX will be sent fot future distribution to beneficiaries
+    /// @notice Address of the treasury where sAVAX will be sent fot future distribution to beneficiaries.
     address public treasuryAddress;
 
-    /// @notice Address of the owner of the contract
+    /// @notice Address of the owner of the contract.
     address public harvestManager;
 
-    /// @notice sAVAX address
+    /// @notice sAVAX address.
     address public sAVAXAddress;
 
-    /// @notice Event emitted when funds are distributed to beneficiaries
-    /// @param treasuryAddress Address of the Treasury where sAVAX is sent
-    /// @param _amount Amount of the token that is distributed
+    /**
+        @notice Event emitted when funds are distributed to beneficiaries
+        @param treasuryAddress Address of the Treasury where sAVAX is sent
+        @param _amount Amount of the token that is distributed
+    */
     event SentToTreasury(address treasuryAddress, uint256 _amount);
 
     /// @notice modifier that is used to restrict access to the function only to the harvestManager;
     modifier onlyHarvestManager() {
-
         require(msg.sender == harvestManager, "Only harvestManager can call this function.");
         _;
-
     }
 
-    /// @notice Contract constructor.
-    /// @param _harvestManager Address of the HarvestharvestManager of the contract
-    /// @param _sAVAXAddress Address of the sAVAX token
-    /// @param _treasuryAddress Address of the treasury where sAVAX will be sent fot future distribution to beneficiaries
+    /** 
+        @notice Contract constructor.
+        @param _harvestManager Address of the Harvest Manager contract.
+        @param _sAVAXAddress Address of the sAVAX token contract.
+        @param _treasuryAddress Address of the treasury where sAVAX will be sent fot future distribution to beneficiaries
+    */
     constructor (address _harvestManager, address _sAVAXAddress, address _treasuryAddress) {
-
         harvestManager = _harvestManager;
         sAVAXAddress = _sAVAXAddress;
-        treasuryAddress = _treasuryAddress;
-        
+        treasuryAddress = _treasuryAddress;      
     }
 
-    /// @notice Function that is called by Harvest harvestManager to send sAVAX (or any other token) to the treasury
+    /// @notice Function that is called by Harvest Manager to send sAVAX (or any other token) to the treasury.
     /// @param _distributionToken Address of the ERC-20 token that is distributed
     function distribute(address _distributionToken) external onlyHarvestManager {
         uint256 _fundsToDistribute = IERC20(sAVAXAddress).balanceOf(address(harvestManager));
@@ -54,6 +59,5 @@ contract DistributeToTreasury is IDistributionStrategy {
 
         IERC20(_distributionToken).transferFrom(harvestManager, treasuryAddress, _fundsToDistribute);
         emit SentToTreasury(treasuryAddress, _fundsToDistribute);
-
     }
 }
