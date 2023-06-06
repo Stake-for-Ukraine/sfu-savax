@@ -103,7 +103,7 @@ contract SfuAVAXvault is ERC20 {
         and disitirbutes them to beneficiaries.
         @param _sAVAXaddress Address of the sAVAX ERC-20 contract;
     */
-    constructor(address payable _harvestManagerAddress, address payable _sAVAXaddress) ERC20("SFU alfa version", "alfuAVAX") {
+    constructor(address payable _harvestManagerAddress, address payable _sAVAXaddress) ERC20("Stake for Ukraine AVAX", "sfuAVAX") {
         emergencyMode = false;
         sAVAXaddress = _sAVAXaddress;
         sAVAXcontract = IStakedAvax(sAVAXaddress);
